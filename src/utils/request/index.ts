@@ -85,6 +85,7 @@ function http<T = any>(options: HttpOption, sessionRetry = false): Promise<Respo
   let { method } = options
   const authStore = useAuthStore()
   const appStore = useAppStore()
+  const sentToken = authStore.token
   const successHandler = async (res: AxiosResponse<Response<T>>): Promise<Response<T>> => {
     if (res.data.code === 0)
       return res.data
@@ -97,19 +98,29 @@ function http<T = any>(options: HttpOption, sessionRetry = false): Promise<Respo
       }
     }
 
-    if (res.data.code === 1008 && !sessionRetry) {
+    // A device session is only ended by a definitive refresh rejection, which
+    // refreshSession() handles itself. A 1001/1008 on an ordinary request is
+    // usually a stale access token: another new-tab window rotated the pair
+    // while this request was in flight, or the access token simply expired.
+    if ((res.data.code === 1001 || res.data.code === 1008) && authStore.authMode === 'device' && authStore.refreshToken) {
+      if (sessionRetry)
+        return res.data
+      if (authStore.token && authStore.token !== sentToken)
+        return http<T>(options, true)
       if (await authStore.refreshSession())
         return http<T>(options, true)
       // Preserve a device refresh token after a temporary refresh transport
       // failure. Give the refresh one delayed second chance (single-flight
-      // dedupes with parallel callers) before surfacing the expired-token
-      // error to the user; a later online event can still recover it.
+      // dedupes with parallel callers) before surfacing the error to the
+      // user; a later online event can still recover it.
       if (authStore.authMode === 'device' && authStore.refreshToken) {
         await new Promise(resolve => setTimeout(resolve, 1200))
         if (await authStore.refreshSession())
           return http<T>(options, true)
         return res.data
       }
+      if (getRuntime().kind === 'extension')
+        return res.data
     }
 
     if (res.data.code === 1001 || res.data.code === 1008 || res.data.code === 1009) {
@@ -202,7 +213,7 @@ function http<T = any>(options: HttpOption, sessionRetry = false): Promise<Respo
   const params = Object.assign(typeof data === 'function' ? data() : data ?? {}, {})
   const headers: Record<string, any> = {
     ...(providedHeaders ?? {}),
-    token: authStore.token,
+    token: sentToken,
     lang: appStore.language,
   }
   return method === 'GET'

@@ -212,8 +212,16 @@ func (m *Manager) RotateRefresh(ctx context.Context, rawToken string) (Pair, err
 				}
 				return historyErr
 			}
-			reuseDetected = true
-			return tx.Model(&models.UserSession{}).Where("id = ? AND revoked_at IS NULL", used.SessionID).Update("revoked_at", now).Error
+			retry, retryErr := lostRotationRetry(tx, used)
+			if retryErr != nil {
+				return retryErr
+			}
+			if retry == nil {
+				reuseDetected = true
+				return tx.Model(&models.UserSession{}).Where("id = ? AND revoked_at IS NULL", used.SessionID).Update("revoked_at", now).Error
+			}
+			stored = *retry
+			err = nil
 		}
 		if err != nil {
 			return err
@@ -265,6 +273,39 @@ func (m *Manager) RotateRefresh(ctx context.Context, rawToken string) (Pair, err
 		return Pair{}, ErrRefreshTokenReuse
 	}
 	return pair, nil
+}
+
+// lostRotationRetry recognises a client retrying with the refresh token it
+// just rotated because it never received the response: the new-tab page was
+// closed mid-request, the request timed out after the server committed, or
+// the browser was killed before the new pair reached storage. The presented
+// token must be the session's most recently consumed one and the pair issued
+// for it must never have authenticated a request (last_active_at unchanged
+// since the rotation). Only then is it rotated again instead of being treated
+// as theft. A stolen predecessor cannot be replayed once the legitimate client
+// has used its new tokens, and any other old token still revokes the session.
+func lostRotationRetry(tx *gorm.DB, used models.UserSessionRefreshToken) (*models.UserSession, error) {
+	var current models.UserSession
+	err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Where("id = ?", used.SessionID).First(&current).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	if current.RevokedAt != nil || current.RefreshTokenHash == "" || current.LastActiveAt.After(used.UsedAt) {
+		return nil, nil
+	}
+	var newer int64
+	if err := tx.Model(&models.UserSessionRefreshToken{}).
+		Where("session_id = ? AND id > ?", used.SessionID, used.ID).
+		Count(&newer).Error; err != nil {
+		return nil, err
+	}
+	if newer > 0 {
+		return nil, nil
+	}
+	return &current, nil
 }
 
 func (m *Manager) ListDevices(ctx context.Context, userID uint, currentSessionID string) ([]Device, error) {

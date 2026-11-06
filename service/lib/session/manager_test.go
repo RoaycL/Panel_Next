@@ -137,6 +137,7 @@ func TestReauthenticationRotatesExistingDevice(t *testing.T) {
 	if _, err := manager.AuthenticateAccess(context.Background(), firstPair.AccessToken); !errors.Is(err, ErrInvalidAccessToken) {
 		t.Fatalf("old access token survived reauthentication: %v", err)
 	}
+	*now = now.Add(time.Second)
 	if _, err := manager.AuthenticateAccess(context.Background(), secondPair.AccessToken); err != nil {
 		t.Fatalf("new access token failed: %v", err)
 	}
@@ -167,6 +168,12 @@ func TestRefreshRotationAndReuseRevokesSession(t *testing.T) {
 	if _, err := manager.AuthenticateAccess(context.Background(), first.AccessToken); !errors.Is(err, ErrInvalidAccessToken) {
 		t.Fatalf("old access token should be invalid after rotation, got %v", err)
 	}
+	// The client received and used the new pair, so a later replay of the
+	// predecessor can only come from a copied credential.
+	*now = now.Add(time.Second)
+	if _, err := manager.AuthenticateAccess(context.Background(), second.AccessToken); err != nil {
+		t.Fatal(err)
+	}
 	if _, err := manager.RotateRefresh(context.Background(), first.RefreshToken); !errors.Is(err, ErrRefreshTokenReuse) {
 		t.Fatalf("expected refresh reuse detection, got %v", err)
 	}
@@ -182,7 +189,7 @@ func TestRefreshRotationAndReuseRevokesSession(t *testing.T) {
 	}
 }
 
-func TestConcurrentRefreshHasOneWinnerAndRevokesOnReuse(t *testing.T) {
+func TestConcurrentRefreshOfSameTokenKeepsSession(t *testing.T) {
 	manager, _ := testManager(t)
 	stored, first, err := manager.Create(context.Background(), CreateRequest{
 		UserID: 13, DeviceID: "concurrent-extension", DeviceName: "Chrome", ClientType: models.SessionClientChromeExtension,
@@ -205,32 +212,69 @@ func TestConcurrentRefreshHasOneWinnerAndRevokesOnReuse(t *testing.T) {
 	}
 	close(start)
 
-	successes, reuses := 0, 0
-	var successor Pair
+	var pairs []Pair
 	for i := 0; i < 2; i++ {
 		outcome := <-results
-		switch {
-		case outcome.err == nil:
-			successes++
-			successor = outcome.pair
-		case errors.Is(outcome.err, ErrRefreshTokenReuse):
-			reuses++
-		default:
-			t.Fatalf("unexpected concurrent refresh error: %v", outcome.err)
+		if outcome.err != nil {
+			t.Fatalf("concurrent refresh of an unused pair must not log the device out: %v", outcome.err)
 		}
-	}
-	if successes != 1 || reuses != 1 {
-		t.Fatalf("concurrent refresh outcomes: successes=%d reuses=%d", successes, reuses)
-	}
-	if _, err := manager.AuthenticateAccess(context.Background(), successor.AccessToken); !errors.Is(err, ErrSessionRevoked) {
-		t.Fatalf("reused refresh token did not revoke its concurrent successor: %v", err)
+		pairs = append(pairs, outcome.pair)
 	}
 	var refreshed models.UserSession
 	if err := manager.DB.First(&refreshed, "id = ?", stored.ID).Error; err != nil {
 		t.Fatal(err)
 	}
-	if refreshed.RevokedAt == nil || refreshed.RefreshVersion != 2 {
+	if refreshed.RevokedAt != nil || refreshed.RefreshVersion != 3 {
 		t.Fatalf("unexpected concurrent refresh state: %+v", refreshed)
+	}
+	valid := 0
+	for _, pair := range pairs {
+		if _, err := manager.AuthenticateAccess(context.Background(), pair.AccessToken); err == nil {
+			valid++
+		}
+	}
+	if valid != 1 {
+		t.Fatalf("exactly the latest pair should authenticate, got %d", valid)
+	}
+}
+
+func TestLostRefreshResponseCanBeRetried(t *testing.T) {
+	manager, now := testManager(t)
+	stored, first, err := manager.Create(context.Background(), CreateRequest{
+		UserID: 14, DeviceID: "closed-tab", DeviceName: "Chrome", ClientType: models.SessionClientChromeExtension,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	*now = now.Add(20 * time.Minute)
+	lost, err := manager.RotateRefresh(context.Background(), first.RefreshToken)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// The new tab closed before the response was stored; hours later the
+	// next tab still presents the predecessor.
+	*now = now.Add(6 * time.Hour)
+	retried, err := manager.RotateRefresh(context.Background(), first.RefreshToken)
+	if err != nil {
+		t.Fatalf("retry after a lost rotation response logged the device out: %v", err)
+	}
+	if _, err := manager.AuthenticateAccess(context.Background(), lost.AccessToken); !errors.Is(err, ErrInvalidAccessToken) {
+		t.Fatalf("the undelivered pair should be superseded, got %v", err)
+	}
+	*now = now.Add(time.Second)
+	if _, err := manager.AuthenticateAccess(context.Background(), retried.AccessToken); err != nil {
+		t.Fatal(err)
+	}
+	// Once the retried pair is in use, neither older token may be replayed.
+	if _, err := manager.RotateRefresh(context.Background(), first.RefreshToken); !errors.Is(err, ErrRefreshTokenReuse) {
+		t.Fatalf("expected reuse detection after the new pair was used, got %v", err)
+	}
+	var revoked models.UserSession
+	if err := manager.DB.First(&revoked, "id = ?", stored.ID).Error; err != nil {
+		t.Fatal(err)
+	}
+	if revoked.RevokedAt == nil {
+		t.Fatal("replay after use did not revoke the session")
 	}
 }
 
