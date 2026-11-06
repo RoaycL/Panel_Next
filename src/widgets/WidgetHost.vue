@@ -26,9 +26,25 @@ watch(showDetails, (show) => {
   if (show)
     detailOpen.value = true
 })
+const shellElement = ref<HTMLElement | null>(null)
+// Opened with the mouse: closing (Esc included) must not leave the keyboard
+// focus ring on the grid cell the modal hands focus back to.
+let openedByPointer = false
+function dropReturnedFocusRing() {
+  const active = document.activeElement
+  const shell = shellElement.value
+  if (!(active instanceof HTMLElement) || !shell)
+    return
+  if (active.contains(shell) || shell.contains(active))
+    active.blur()
+}
 function finishDetailsLeave() {
   detailOpen.value = false
   detailFullscreen.value = false
+  if (openedByPointer) {
+    dropReturnedFocusRing()
+    requestAnimationFrame(dropReturnedFocusRing)
+  }
 }
 const detailTitle = computed(() => t(widgetRegistry.get(props.instance.type)?.meta?.title || props.instance.type))
 const retryGeneration = ref(0)
@@ -130,12 +146,18 @@ function openDetails(event?: MouseEvent) {
     return
   if (event && (event.defaultPrevented || (event.target as HTMLElement).closest('a, button, input, textarea, select, [contenteditable], [role="button"]')))
     return
+  openedByPointer = Boolean(event && event.detail > 0)
+  showDetails.value = true
+}
+function openDetailsFromButton(event: MouseEvent) {
+  openedByPointer = event.detail > 0
   showDetails.value = true
 }
 </script>
 
 <template>
   <div
+    ref="shellElement"
     class="pn-widget-shell widget-shell-frame"
     :data-widget="theme.variants.widget"
     :data-instance-id="instance.id"
@@ -162,7 +184,7 @@ function openDetails(event?: MouseEvent) {
         <component :is="component" v-bind="componentProps" />
       </div>
     </Teleport>
-    <button v-if="component && !instance.hidden && !editMode && !instance.id.startsWith('header.') && !detailOpen" class="widget-expand-button" type="button" :aria-label="t('widgetDetails.expand', { title: detailTitle })" :title="t('widgetDetails.expand', { title: detailTitle })" @click.stop="showDetails = true">
+    <button v-if="component && !instance.hidden && !editMode && !instance.id.startsWith('header.') && !detailOpen" class="widget-expand-button" type="button" :aria-label="t('widgetDetails.expand', { title: detailTitle })" :title="t('widgetDetails.expand', { title: detailTitle })" @click.stop="openDetailsFromButton">
       ⤢
     </button>
   </div>
