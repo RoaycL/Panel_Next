@@ -13,7 +13,7 @@ const LEGACY_BRANDING_PATTERN = new RegExp(
 
 /** 仓库改名前（RoaycL/panel-next）写入的默认页脚，视同默认页脚并迁移到新链接。 */
 const PREVIOUS_DEFAULT_FOOTERS = new Set([
-  defaultFooterHtml.replace('RoaycL/Panel_NEXT', 'RoaycL/panel-next'),
+  defaultFooterHtml.replace('RoaycL/Panel_Next', 'RoaycL/panel-next'),
 ])
 
 export function isLegacyBrandedFooter(html: unknown): boolean {

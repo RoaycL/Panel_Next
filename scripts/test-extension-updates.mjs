@@ -9,7 +9,7 @@ assert.throws(() => compareVersions('invalid', '1.0.0'))
 assert.equal(selectRelease([release('0.0.44'), release('0.0.45', { draft: true }), release('0.0.50', { assets: [] }), release('0.0.43')], '0.0.42').version, '0.0.44')
 assert.equal(selectRelease([release('1.0.1')], '1.0.0'), null)
 assert.equal(selectRelease([release('0.0.42')], '0.0.42'), null)
-assert.equal(selectRelease([release('0.0.43', { html_url: 'https://evil.example' })], '0.0.42').releaseUrl, 'https://github.com/RoaycL/Panel_NEXT/releases/tag/v0.0.43')
+assert.equal(selectRelease([release('0.0.43', { html_url: 'https://evil.example' })], '0.0.42').releaseUrl, 'https://github.com/RoaycL/Panel_Next/releases/tag/v0.0.43')
 const data = {}
 const storage = { async get(key) { return { [key]: data[key] } }, async set(value) { Object.assign(data, value) } }
 let calls = 0
@@ -17,7 +17,7 @@ let fail = false
 let limited = false
 const check = createUpdateChecker({ storage, currentVersion: '0.0.42', now: () => 1000000, fetcher: async (url, options) => {
   calls++
-  assert.match(url, /^https:\/\/api.github.com\/repos\/RoaycL\/Panel_NEXT\/releases/)
+  assert.match(url, /^https:\/\/api.github.com\/repos\/RoaycL\/Panel_Next\/releases/)
   assert.equal(options.credentials, 'omit')
   assert.equal(options.headers.Authorization, undefined)
   if (fail) throw new Error('offline')

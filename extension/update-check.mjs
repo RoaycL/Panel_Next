@@ -1,7 +1,7 @@
 export const UPDATE_KEY = 'panel-next-extension-update'
 export const UPDATE_ALARM = 'panel-next-update-check'
 export const UPDATE_INTERVAL_MINUTES = 10
-export const RELEASES_API = 'https://api.github.com/repos/RoaycL/Panel_NEXT/releases?per_page=30'
+export const RELEASES_API = 'https://api.github.com/repos/RoaycL/Panel_Next/releases?per_page=30'
 
 export function compareVersions(a, b) {
   const parse = value => /^\d+\.\d+\.\d+$/.test(value) ? value.split('.').map(Number) : null
@@ -26,8 +26,8 @@ export function selectRelease(releases, currentVersion) {
     const assets = release.assets || []
     if (![archive, `${archive}.sha256`].every(name => assets.some(asset => asset.name === name && asset.size > 0 && asset.state === 'uploaded'))) continue
     if (!latest || compareVersions(version, latest.version) > 0) {
-      const releaseUrl = `https://github.com/RoaycL/Panel_NEXT/releases/tag/v${version}`
-      latest = { version, releaseUrl, downloadUrl: `https://github.com/RoaycL/Panel_NEXT/releases/download/v${version}/${archive}` }
+      const releaseUrl = `https://github.com/RoaycL/Panel_Next/releases/tag/v${version}`
+      latest = { version, releaseUrl, downloadUrl: `https://github.com/RoaycL/Panel_Next/releases/download/v${version}/${archive}` }
     }
   }
   return latest
