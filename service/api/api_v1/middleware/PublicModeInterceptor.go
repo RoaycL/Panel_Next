@@ -39,7 +39,10 @@ func PublicModeInterceptor(c *gin.Context) {
 		c.Abort()
 		return
 	}
-	if errors.Is(deviceErr, sessionlib.ErrSessionRevoked) || (bearerToken != "" && !legacyActive) {
+	// A Bearer credential is only sent by device sessions. If it no longer
+	// authenticates (rotated by another tab, revoked), tell the client so it
+	// can refresh instead of silently serving the public visitor's data.
+	if errors.Is(deviceErr, sessionlib.ErrSessionRevoked) || bearerToken != "" {
 		apiReturn.ErrorByCode(c, 1001)
 		c.Abort()
 		return

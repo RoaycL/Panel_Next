@@ -214,6 +214,9 @@ function http<T = any>(options: HttpOption, sessionRetry = false): Promise<Respo
   const headers: Record<string, any> = {
     ...(providedHeaders ?? {}),
     token: sentToken,
+    // Lets the server tell a stale device token apart from an anonymous
+    // visitor on public-mode routes, so it answers 1001 and we refresh.
+    ...(authStore.authMode === 'device' && sentToken ? { Authorization: `Bearer ${sentToken}` } : {}),
     lang: appStore.language,
   }
   return method === 'GET'

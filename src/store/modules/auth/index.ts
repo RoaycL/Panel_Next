@@ -86,26 +86,26 @@ export const useAuthStore = defineStore('auth-store', {
       const performRefresh = async () => {
         try {
           const runtime = getRuntime()
-          if (runtime.kind === 'extension') {
-            // Another new-tab window may have rotated the one-time refresh
-            // token while this window waited for the browser-wide lock.
-            await runtime.storage.sync?.()
-            const stored = getStorage() as Partial<AuthState> | null
-            if (!stored?.refreshToken || stored.authMode !== 'device') {
-              this.clearSession()
-              return false
-            }
-            if (stored.refreshToken !== refreshToken) {
-              this.$patch({
-                token: stored.token ?? null,
-                refreshToken: stored.refreshToken,
-                accessExpiresAt: stored.accessExpiresAt ?? null,
-                refreshExpiresAt: stored.refreshExpiresAt ?? null,
-                userInfo: stored.userInfo ?? null,
-                visitMode: VisitMode.VISIT_MODE_LOGIN,
-              })
-              return Boolean(this.token)
-            }
+          // Another tab or new-tab window may have rotated the one-time
+          // refresh token while this one waited for the browser-wide lock.
+          // Web tabs and extension pages each share one runtime store, so
+          // both must re-read it before spending the token.
+          await runtime.storage.sync?.()
+          const stored = getStorage() as Partial<AuthState> | null
+          if (!stored?.refreshToken || stored.authMode !== 'device') {
+            this.clearSession()
+            return false
+          }
+          if (stored.refreshToken !== refreshToken) {
+            this.$patch({
+              token: stored.token ?? null,
+              refreshToken: stored.refreshToken,
+              accessExpiresAt: stored.accessExpiresAt ?? null,
+              refreshExpiresAt: stored.refreshExpiresAt ?? null,
+              userInfo: stored.userInfo ?? null,
+              visitMode: VisitMode.VISIT_MODE_LOGIN,
+            })
+            return Boolean(this.token)
           }
           const { getDeviceIdentity } = await import('@/runtime/device')
           const deviceIdentity = getDeviceIdentity()
