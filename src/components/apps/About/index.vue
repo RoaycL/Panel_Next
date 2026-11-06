@@ -33,7 +33,7 @@ onMounted(() => {
       <h2 class="about-title">
         {{ $t('common.appName') }}
       </h2>
-      <a class="pn-app-link about-version" href="https://github.com/RoaycL/panel-next/releases" :title="$t('apps.about.viewUpdateLog')" target="_blank" rel="noopener noreferrer">v{{ isExtension ? (extensionUpdateState.currentVersion || frontVersion) : (versionName || frontVersion) }}</a>
+      <a class="pn-app-link about-version" href="https://github.com/RoaycL/Panel_NEXT/releases" :title="$t('apps.about.viewUpdateLog')" target="_blank" rel="noopener noreferrer">v{{ isExtension ? (extensionUpdateState.currentVersion || frontVersion) : (versionName || frontVersion) }}</a>
       <p class="pn-app-muted about-description">
         {{ $t('apps.about.description') }}
       </p>
@@ -45,17 +45,17 @@ onMounted(() => {
         <p v-else-if="extensionUpdateState.checkedAt && !extensionUpdateState.error" class="pn-app-muted">当前已是最新版本</p>
         <small v-if="extensionUpdateState.checkedAt" class="pn-app-muted">上次检查：{{ new Date(extensionUpdateState.checkedAt).toLocaleString() }}</small>
       </template>
-      <a v-else class="pn-app-link" href="https://github.com/RoaycL/panel-next/releases" target="_blank" rel="noopener noreferrer">{{ $t('apps.about.checkUpdate') }}</a>
+      <a v-else class="pn-app-link" href="https://github.com/RoaycL/Panel_NEXT/releases" target="_blank" rel="noopener noreferrer">{{ $t('apps.about.checkUpdate') }}</a>
     </section>
 
     <section class="pn-app-panel about-links">
       <h3 class="pn-app-heading">
         {{ $t('common.appName') }}
       </h3>
-      <p>{{ $t('apps.about.issue') }} <a class="pn-app-link" href="https://github.com/RoaycL/panel-next/issues" target="_blank" rel="noopener noreferrer">Github Issues</a></p>
-      <p>{{ $t('apps.about.discussions') }} <a class="pn-app-link" href="https://github.com/RoaycL/panel-next/discussions" target="_blank" rel="noopener noreferrer">Github Discussions</a></p>
+      <p>{{ $t('apps.about.issue') }} <a class="pn-app-link" href="https://github.com/RoaycL/Panel_NEXT/issues" target="_blank" rel="noopener noreferrer">Github Issues</a></p>
+      <p>{{ $t('apps.about.discussions') }} <a class="pn-app-link" href="https://github.com/RoaycL/Panel_NEXT/discussions" target="_blank" rel="noopener noreferrer">Github Discussions</a></p>
       <div class="about-project-link">
-        <a class="pn-app-link" href="https://github.com/RoaycL/panel-next" target="_blank" rel="noopener noreferrer">Github</a>
+        <a class="pn-app-link" href="https://github.com/RoaycL/Panel_NEXT" target="_blank" rel="noopener noreferrer">Github</a>
       </div>
       <NTag :bordered="false" size="small">
         {{ $t('apps.about.frontVersionText') }}: FV-{{ frontVersion }}

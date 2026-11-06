@@ -106,6 +106,6 @@ cd service && go build -o panel-next .
 
 ## 7. 联系方式
 
-- 项目仓库：<https://github.com/RoaycL/panel-next>
-- Issues：<https://github.com/RoaycL/panel-next/issues>
-- Discussions：<https://github.com/RoaycL/panel-next/discussions>
+- 项目仓库：<https://github.com/RoaycL/Panel_NEXT>
+- Issues：<https://github.com/RoaycL/Panel_NEXT/issues>
+- Discussions：<https://github.com/RoaycL/Panel_NEXT/discussions>

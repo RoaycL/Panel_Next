@@ -80,8 +80,8 @@ Panel Next **不会**：
 
 ## 9. 问题与支持
 
-- 项目地址：<https://github.com/RoaycL/panel-next>
-- 建议与问题反馈：<https://github.com/RoaycL/panel-next/issues>
-- 交流社区：<https://github.com/RoaycL/panel-next/discussions>
+- 项目地址：<https://github.com/RoaycL/Panel_NEXT>
+- 建议与问题反馈：<https://github.com/RoaycL/Panel_NEXT/issues>
+- 交流社区：<https://github.com/RoaycL/Panel_NEXT/discussions>
 
 部署中的具体问题，请优先咨询您的服务器管理员。

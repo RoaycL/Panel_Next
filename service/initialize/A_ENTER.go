@@ -288,6 +288,6 @@ func Logo() {
 	versionInfo := cmn.GetSysVersionInfo()
 	fmt.Println("Version:", versionInfo.Version)
 	fmt.Println("Welcome to the Panel Next.")
-	fmt.Println("Project address:", "https://github.com/RoaycL/panel-next")
+	fmt.Println("Project address:", "https://github.com/RoaycL/Panel_NEXT")
 
 }

@@ -34,7 +34,7 @@ pnpm run package:extension
 - **截图**：桌面端新标签页截图（1280x800）、移动端截图（640x400）
 - **简介**：说明项目定位、自托管、数据存储于用户服务器
 - **隐私政策**：`doc/privacy.md` 需部署到可公开访问的 URL
-- **官网/来源页**：`https://github.com/RoaycL/panel-next`
+- **官网/来源页**：`https://github.com/RoaycL/Panel_NEXT`
 
 ## 4. 上传到 Chrome Web Store
 

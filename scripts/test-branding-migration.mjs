@@ -26,17 +26,22 @@ assert.equal(isLegacyBrandedFooter('powered by sunpanel'), true)
 assert.equal(isLegacyBrandedFooter('POWERED BY SUN-PANEL'), true)
 
 // Panel Next 默认页脚 / 用户自定义内容 → 不动
-const panelNextFooter = '<div>Powered By <a href="https://github.com/RoaycL/panel-next" target="_blank">Panel Next</a></div>'
+const panelNextFooter = '<div>Powered By <a href="https://github.com/RoaycL/Panel_NEXT" target="_blank">Panel Next</a></div>'
 assert.equal(isLegacyBrandedFooter(panelNextFooter), false)
 assert.equal(isLegacyBrandedFooter(undefined), false)
 assert.equal(isLegacyBrandedFooter(''), false)
 
 const config = { footerHtml: '<div>Powered By <a href="https://github.com/hslr-s/sun-panel">Sun-Panel</a></div>' }
 const migrated = migrateLegacyFooterHtml(config)
-assert.match(migrated.footerHtml, /RoaycL\/panel-next/)
+assert.match(migrated.footerHtml, /RoaycL\/Panel_NEXT/)
 assert.doesNotMatch(migrated.footerHtml, /hslr-s\/sun-panel/i)
 // 其余字段原样保留
 assert.equal(Object.keys(migrated).includes('footerHtml'), true)
+
+// 仓库改名前的默认页脚 → 迁移到新仓库链接
+const previousDefault = mod.defaultFooterHtml.replace('RoaycL/Panel_NEXT', 'RoaycL/panel-next')
+assert.equal(isLegacyBrandedFooter(previousDefault), true)
+assert.equal(migrateLegacyFooterHtml({ footerHtml: previousDefault }).footerHtml, mod.defaultFooterHtml)
 
 // 用户自定义页脚不被改写
 const custom = { footerHtml: '<div>我的自定义备案号 京ICPxxxx</div>' }

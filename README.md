@@ -7,8 +7,8 @@
 **下一代自托管导航面板 · Web 与 Chrome 扩展新标签页双端桌面**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-2ea44f.svg)](./LICENSE)
-[![GitHub stars](https://img.shields.io/github/stars/RoaycL/panel-next?style=flat&logo=github)](https://github.com/RoaycL/panel-next)
-[![Version](https://img.shields.io/github/v/release/RoaycL/panel-next?include_prereleases&label=testing&color=orange)](https://github.com/RoaycL/panel-next/releases)
+[![GitHub stars](https://img.shields.io/github/stars/RoaycL/Panel_NEXT?style=flat&logo=github)](https://github.com/RoaycL/Panel_NEXT)
+[![Version](https://img.shields.io/github/v/release/RoaycL/Panel_NEXT?include_prereleases&label=testing&color=orange)](https://github.com/RoaycL/Panel_NEXT/releases)
 
 [功能特性](#-功能特性) • [快速开始](#-快速开始) • [Chrome 扩展安装](#-chrome-扩展安装) • [系统架构](#-系统架构) • [开发指南](#-本地开发) • [开源协议](#-开源协议)
 
@@ -110,7 +110,7 @@ docker compose up -d
 
 Panel Next 扩展将彻底接管浏览器的新标签页，提供如同原生桌面般强大的操作体验。
 
-1. 前往 GitHub [Releases 页面](https://github.com/RoaycL/panel-next/releases) 下载对应版本的 `panel-next-extension-v<版本号>.zip`（在 Assets 中选择扩展 ZIP，而不是 Source code）；每个新版同时提供 `.zip.sha256` 校验文件，测试版请展开预发布版本查看；
+1. 前往 GitHub [Releases 页面](https://github.com/RoaycL/Panel_NEXT/releases) 下载对应版本的 `panel-next-extension-v<版本号>.zip`（在 Assets 中选择扩展 ZIP，而不是 Source code）；每个新版同时提供 `.zip.sha256` 校验文件，测试版请展开预发布版本查看；
 2. 解压 ZIP 压缩包到本地目录；
 3. 打开 Chrome 浏览器，访问 `chrome://extensions/`；
 4. 开启右上角的 **「开发者模式 (Developer mode)」**；
@@ -168,8 +168,8 @@ flowchart TD
 
 ### 1. 克隆项目与安装依赖
 ```bash
-git clone https://github.com/RoaycL/panel-next.git
-cd panel-next
+git clone https://github.com/RoaycL/Panel_NEXT.git
+cd Panel_NEXT
 corepack enable
 pnpm run bootstrap
 ```
